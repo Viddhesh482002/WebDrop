@@ -143,27 +143,22 @@ function updateConnectionStatus(connected) {
     }));
 }
 
-function generateQRCode() {
+function generateQRCode(customUrl) {
     if (!peer || !peer.id) {
         console.error('Peer ID not available');
         return;
     }
 
-    const qrContainer = document.getElementById('qrCode');
-    qrContainer.innerHTML = '';
-    
     // Get the full URL for the QR code
     const url = new URL(window.location.href);
     url.searchParams.set('connect', peer.id);
     
-    new QRCode(qrContainer, {
-        text: url.toString(),
-        width: 128,
-        height: 128,
-        colorDark: '#2196F3',
-        colorLight: '#ffffff',
-        correctLevel: QRCode.CorrectLevel.H
-    });
+    // Use the React component to render the QR code
+    if (typeof window.initQRCode === 'function') {
+        window.initQRCode(customUrl || url.toString());
+    } else {
+        console.error('QR Code component not initialized');
+    }
 }
 
 function checkUrlParams() {
@@ -171,10 +166,12 @@ function checkUrlParams() {
     const connectId = urlParams.get('connect');
     
     if (connectId) {
-        console.log('Found connect ID in URL:', connectId);
-        document.getElementById('peerInput').value = connectId;
+        console.log('Found connection ID in URL:', connectId);
+        // Wait a bit to ensure peer is initialized
         setTimeout(() => {
-            document.getElementById('connectButton').click();
+            if (peer && peer.id && connectId !== peer.id) {
+                connectToPeer(connectId);
+            }
         }, 1000);
     }
 }
