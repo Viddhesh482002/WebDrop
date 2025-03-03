@@ -6,14 +6,30 @@ function initializePeer() {
         peer.destroy();
     }
 
-    const protocol = window.location.protocol === 'https:' ? 'https' : 'http';
-    const host = window.location.hostname;
-    const port = window.location.port || (protocol === 'https' ? 443 : 80);
+    let peerConfig;
+    if (window.location.hostname === 'webdrop-qu29.onrender.com') {
+        // Use hosted configuration
+        peerConfig = {
+            host: 'webdrop-qu29.onrender.com',
+            port: 443,
+            path: '/',
+            secure: true
+        };
+    } else {
+        // Use local configuration
+        const protocol = window.location.protocol === 'https:' ? 'https' : 'http';
+        const host = window.location.hostname;
+        const port = window.location.port || (protocol === 'https' ? 443 : 80);
+        peerConfig = {
+            host: host,
+            port: port,
+            path: '/'
+        };
+    }
 
-    peer = new Peer(null, {
-        host: host,
-        port: port,
-        path: '/',
+    // Add common config options
+    peerConfig = {
+        ...peerConfig,
         debug: 3,
         config: {
             'iceServers': [
@@ -21,13 +37,11 @@ function initializePeer() {
                 { urls: 'stun:stun1.l.google.com:19302' }
             ]
         }
-    });
+    };
 
-    console.log('Initializing peer connection...', {
-        host: host,
-        port: port,
-        path: '/'
-    });
+    peer = new Peer(null, peerConfig);
+
+    console.log('Initializing peer connection...', peerConfig);
 
     peer.on('open', handlePeerOpen);
     peer.on('connection', handleIncomingConnection);
