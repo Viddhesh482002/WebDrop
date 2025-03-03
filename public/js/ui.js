@@ -12,18 +12,57 @@ function setupUI() {
             document.getElementById('networkUrl').textContent = networkUrl;
             
             // Setup network URL copy button
-            copyNetworkUrl.addEventListener('click', () => {
-                navigator.clipboard.writeText(networkUrl)
-                    .then(() => {
-                        copyNetworkUrl.textContent = '✓';
-                        setTimeout(() => copyNetworkUrl.textContent = '📋', 2000);
-                        showNotification('Network link copied to clipboard!', 'success');
-                    })
-                    .catch(err => {
+            if (copyNetworkUrl) {
+                copyNetworkUrl.addEventListener('click', async () => {
+                    const networkUrlElement = document.getElementById('networkUrl');
+                    const currentUrl = networkUrlElement ? networkUrlElement.textContent : '';
+                    
+                    if (!currentUrl) {
+                        console.error('No network URL available');
+                        const notification = document.getElementById('notification');
+                        notification.textContent = 'No network URL available to copy';
+                        notification.className = 'notification show error';
+                        setTimeout(() => notification.classList.remove('show'), 3000);
+                        return;
+                    }
+
+                    try {
+                        // Create a temporary textarea
+                        const textarea = document.createElement('textarea');
+                        textarea.value = currentUrl;
+                        textarea.style.position = 'fixed';
+                        textarea.style.opacity = '0';
+                        document.body.appendChild(textarea);
+                        textarea.select();
+                        
+                        // Try to copy
+                        document.execCommand('copy');
+                        document.body.removeChild(textarea);
+
+                        // Update icon
+                        const icon = copyNetworkUrl.querySelector('i.fas');
+                        if (icon) {
+                            const originalClass = icon.className;
+                            icon.className = 'fas fa-check';
+                            setTimeout(() => {
+                                icon.className = originalClass;
+                            }, 2000);
+                        }
+                        
+                        // Show success notification
+                        const notification = document.getElementById('notification');
+                        notification.textContent = 'Network link copied to clipboard!';
+                        notification.className = 'notification show success';
+                        setTimeout(() => notification.classList.remove('show'), 3000);
+                    } catch (err) {
                         console.error('Failed to copy:', err);
-                        showNotification('Failed to copy network link', 'error');
-                    });
-            });
+                        const notification = document.getElementById('notification');
+                        notification.textContent = 'Failed to copy network link';
+                        notification.className = 'notification show error';
+                        setTimeout(() => notification.classList.remove('show'), 3000);
+                    }
+                });
+            }
 
             // Create custom QR code with gradient effect
             createQRCode(networkUrl);

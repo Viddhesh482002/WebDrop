@@ -59,17 +59,6 @@ function handlePeerOpen(id) {
     generateQRCode();
     updateConnectionStatus(false);
     
-    // Setup copy ID button
-    const copyButton = document.getElementById('copyId');
-    copyButton.addEventListener('click', () => {
-        navigator.clipboard.writeText(id)
-            .then(() => {
-                copyButton.textContent = '✓';
-                setTimeout(() => copyButton.textContent = '📋', 2000);
-            })
-            .catch(console.error);
-    });
-    
     checkUrlParams();
 }
 
@@ -190,5 +179,63 @@ function checkUrlParams() {
     }
 }
 
-// Initialize connection when page loads
-window.addEventListener('load', initializePeer);
+function setupCopyButton() {
+    const copyButton = document.getElementById('copyId');
+    if (copyButton) {
+        copyButton.addEventListener('click', async () => {
+            const peerIdElement = document.getElementById('peerId');
+            const currentId = peerIdElement ? peerIdElement.textContent : '';
+            
+            if (!currentId) {
+                console.error('No peer ID available');
+                const notification = document.getElementById('notification');
+                notification.textContent = 'No peer ID available to copy';
+                notification.className = 'notification show error';
+                setTimeout(() => notification.classList.remove('show'), 3000);
+                return;
+            }
+
+            try {
+                // Create a temporary textarea
+                const textarea = document.createElement('textarea');
+                textarea.value = currentId;
+                textarea.style.position = 'fixed';
+                textarea.style.opacity = '0';
+                document.body.appendChild(textarea);
+                textarea.select();
+                
+                // Try to copy
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+
+                // Update icon
+                const icon = copyButton.querySelector('i.fas');
+                if (icon) {
+                    const originalClass = icon.className;
+                    icon.className = 'fas fa-check';
+                    setTimeout(() => {
+                        icon.className = originalClass;
+                    }, 2000);
+                }
+                
+                // Show success notification
+                const notification = document.getElementById('notification');
+                notification.textContent = 'ID copied to clipboard!';
+                notification.className = 'notification show success';
+                setTimeout(() => notification.classList.remove('show'), 3000);
+            } catch (err) {
+                console.error('Failed to copy:', err);
+                const notification = document.getElementById('notification');
+                notification.textContent = 'Failed to copy ID';
+                notification.className = 'notification show error';
+                setTimeout(() => notification.classList.remove('show'), 3000);
+            }
+        });
+    }
+}
+
+// Initialize connection and UI when page loads
+window.addEventListener('load', () => {
+    initializePeer();
+    setupCopyButton();
+});
