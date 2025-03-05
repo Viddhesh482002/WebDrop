@@ -6,30 +6,12 @@ function initializePeer() {
         peer.destroy();
     }
 
-    let peerConfig;
-    if (window.location.hostname === 'webdrop-qu29.onrender.com') {
-        // Use hosted configuration
-        peerConfig = {
-            host: 'webdrop-qu29.onrender.com',
-            port: 443,
-            path: '/',
-            secure: true
-        };
-    } else {
-        // Use local configuration
-        const protocol = window.location.protocol === 'https:' ? 'https' : 'http';
-        const host = window.location.hostname;
-        const port = window.location.port || (protocol === 'https' ? 443 : 80);
-        peerConfig = {
-            host: host,
-            port: port,
-            path: '/'
-        };
-    }
-
-    // Add common config options
-    peerConfig = {
-        ...peerConfig,
+    // Always use production configuration
+    const peerConfig = {
+        host: 'webdrop-qu29.onrender.com',
+        port: 443,
+        path: '/',
+        secure: true,
         debug: 3,
         config: {
             'iceServers': [
@@ -59,6 +41,7 @@ function handlePeerOpen(id) {
     generateQRCode();
     updateConnectionStatus(false);
     
+    // Check URL parameters after peer is initialized
     checkUrlParams();
 }
 
@@ -105,24 +88,49 @@ function setupConnection() {
 }
 
 function connectToPeer(peerId) {
-    if (!peer) {
-        console.error('Peer not initialized');
+    if (!peer || !peerId) {
+        console.error('Peer or target peer ID not available');
         return;
     }
 
+    console.log('Connecting to peer:', peerId);
+    
+    // Close existing connection if any
     if (conn) {
         conn.close();
     }
 
     try {
-        console.log('Attempting to connect to:', peerId);
         conn = peer.connect(peerId, {
-            reliable: true
+            reliable: true,
+            serialization: 'json'
         });
-        setupConnection();
+
+        conn.on('open', () => {
+            console.log('Connected to:', peerId);
+            updateConnectionStatus(true);
+            setupConnection();
+            
+            // Show success notification
+            const notification = document.getElementById('notification');
+            notification.textContent = 'Connected successfully!';
+            notification.className = 'notification show success';
+            setTimeout(() => notification.classList.remove('show'), 3000);
+        });
+
+        conn.on('error', (err) => {
+            console.error('Connection error:', err);
+            const notification = document.getElementById('notification');
+            notification.textContent = 'Connection failed. Please try again.';
+            notification.className = 'notification show error';
+            setTimeout(() => notification.classList.remove('show'), 3000);
+        });
     } catch (err) {
-        console.error('Failed to connect:', err);
-        window.dispatchEvent(new Event('connection-error'));
+        console.error('Failed to establish connection:', err);
+        const notification = document.getElementById('notification');
+        notification.textContent = 'Failed to establish connection. Please try again.';
+        notification.className = 'notification show error';
+        setTimeout(() => notification.classList.remove('show'), 3000);
     }
 }
 
@@ -149,13 +157,13 @@ function generateQRCode(customUrl) {
         return;
     }
 
-    // Get the full URL for the QR code
-    const url = new URL(window.location.href);
-    url.searchParams.set('connect', peer.id);
+    // Always use the production URL for QR codes
+    const productionUrl = new URL('https://webdrop-qu29.onrender.com');
+    productionUrl.searchParams.set('connect', peer.id);
     
     // Use the React component to render the QR code
     if (typeof window.initQRCode === 'function') {
-        window.initQRCode(customUrl || url.toString());
+        window.initQRCode(customUrl || productionUrl.toString());
     } else {
         console.error('QR Code component not initialized');
     }
@@ -167,12 +175,39 @@ function checkUrlParams() {
     
     if (connectId) {
         console.log('Found connection ID in URL:', connectId);
-        // Wait a bit to ensure peer is initialized
-        setTimeout(() => {
+        
+        // Function to attempt connection
+        const attemptConnection = () => {
             if (peer && peer.id && connectId !== peer.id) {
+                console.log('Attempting to connect to:', connectId);
                 connectToPeer(connectId);
+                return true;
             }
-        }, 1000);
+            return false;
+        };
+
+        // Try to connect immediately if peer is ready
+        if (!attemptConnection()) {
+            console.log('Peer not ready, will retry in 1 second');
+            // If peer isn't ready, try again after a delay
+            let retryCount = 0;
+            const maxRetries = 5;
+            const retryInterval = setInterval(() => {
+                retryCount++;
+                console.log(`Retry attempt ${retryCount}`);
+                
+                if (attemptConnection() || retryCount >= maxRetries) {
+                    clearInterval(retryInterval);
+                    if (retryCount >= maxRetries) {
+                        console.log('Max retries reached, connection failed');
+                        const notification = document.getElementById('notification');
+                        notification.textContent = 'Failed to establish connection. Please try manually connecting.';
+                        notification.className = 'notification show error';
+                        setTimeout(() => notification.classList.remove('show'), 3000);
+                    }
+                }
+            }, 1000);
+        }
     }
 }
 

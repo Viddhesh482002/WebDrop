@@ -8,7 +8,8 @@ function setupUI() {
     fetch('/network-info')
         .then(response => response.json())
         .then(info => {
-            const networkUrl = `http://${info.localIP}:${info.port}`;
+            // Update network URL display - only show main URL
+            const networkUrl = 'https://webdrop-qu29.onrender.com';
             document.getElementById('networkUrl').textContent = networkUrl;
             
             // Setup network URL copy button
