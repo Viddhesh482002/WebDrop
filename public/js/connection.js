@@ -6,12 +6,14 @@ function initializePeer() {
         peer.destroy();
     }
 
-    // Always use production configuration
-    const peerConfig = {
-        host: 'webdrop-qu29.onrender.com',
-        port: 443,
+    const protocol = window.location.protocol === 'https:' ? 'https' : 'http';
+    const host = window.location.hostname;
+    const port = window.location.port || (protocol === 'https' ? 443 : 80);
+
+    peer = new Peer(null, {
+        host: host,
+        port: port,
         path: '/',
-        secure: true,
         debug: 3,
         config: {
             'iceServers': [
@@ -19,11 +21,13 @@ function initializePeer() {
                 { urls: 'stun:stun1.l.google.com:19302' }
             ]
         }
-    };
+    });
 
-    peer = new Peer(null, peerConfig);
-
-    console.log('Initializing peer connection...', peerConfig);
+    console.log('Initializing peer connection...', {
+        host: host,
+        port: port,
+        path: '/'
+    });
 
     peer.on('open', handlePeerOpen);
     peer.on('connection', handleIncomingConnection);
@@ -41,7 +45,17 @@ function handlePeerOpen(id) {
     generateQRCode();
     updateConnectionStatus(false);
     
-    // Check URL parameters after peer is initialized
+    // Setup copy ID button
+    const copyButton = document.getElementById('copyId');
+    copyButton.addEventListener('click', () => {
+        navigator.clipboard.writeText(id)
+            .then(() => {
+                copyButton.textContent = '✓';
+                setTimeout(() => copyButton.textContent = '📋', 2000);
+            })
+            .catch(console.error);
+    });
+    
     checkUrlParams();
 }
 
@@ -88,49 +102,24 @@ function setupConnection() {
 }
 
 function connectToPeer(peerId) {
-    if (!peer || !peerId) {
-        console.error('Peer or target peer ID not available');
+    if (!peer) {
+        console.error('Peer not initialized');
         return;
     }
 
-    console.log('Connecting to peer:', peerId);
-    
-    // Close existing connection if any
     if (conn) {
         conn.close();
     }
 
     try {
+        console.log('Attempting to connect to:', peerId);
         conn = peer.connect(peerId, {
-            reliable: true,
-            serialization: 'json'
+            reliable: true
         });
-
-        conn.on('open', () => {
-            console.log('Connected to:', peerId);
-            updateConnectionStatus(true);
-            setupConnection();
-            
-            // Show success notification
-            const notification = document.getElementById('notification');
-            notification.textContent = 'Connected successfully!';
-            notification.className = 'notification show success';
-            setTimeout(() => notification.classList.remove('show'), 3000);
-        });
-
-        conn.on('error', (err) => {
-            console.error('Connection error:', err);
-            const notification = document.getElementById('notification');
-            notification.textContent = 'Connection failed. Please try again.';
-            notification.className = 'notification show error';
-            setTimeout(() => notification.classList.remove('show'), 3000);
-        });
+        setupConnection();
     } catch (err) {
-        console.error('Failed to establish connection:', err);
-        const notification = document.getElementById('notification');
-        notification.textContent = 'Failed to establish connection. Please try again.';
-        notification.className = 'notification show error';
-        setTimeout(() => notification.classList.remove('show'), 3000);
+        console.error('Failed to connect:', err);
+        window.dispatchEvent(new Event('connection-error'));
     }
 }
 
@@ -151,22 +140,27 @@ function updateConnectionStatus(connected) {
     }));
 }
 
-function generateQRCode(customUrl) {
+function generateQRCode() {
     if (!peer || !peer.id) {
         console.error('Peer ID not available');
         return;
     }
 
-    // Always use the production URL for QR codes
-    const productionUrl = new URL('https://webdrop-qu29.onrender.com');
-    productionUrl.searchParams.set('connect', peer.id);
+    const qrContainer = document.getElementById('qrCode');
+    qrContainer.innerHTML = '';
     
-    // Use the React component to render the QR code
-    if (typeof window.initQRCode === 'function') {
-        window.initQRCode(customUrl || productionUrl.toString());
-    } else {
-        console.error('QR Code component not initialized');
-    }
+    // Get the full URL for the QR code
+    const url = new URL(window.location.href);
+    url.searchParams.set('connect', peer.id);
+    
+    new QRCode(qrContainer, {
+        text: url.toString(),
+        width: 128,
+        height: 128,
+        colorDark: '#2196F3',
+        colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.H
+    });
 }
 
 function checkUrlParams() {
@@ -174,40 +168,11 @@ function checkUrlParams() {
     const connectId = urlParams.get('connect');
     
     if (connectId) {
-        console.log('Found connection ID in URL:', connectId);
-        
-        // Function to attempt connection
-        const attemptConnection = () => {
-            if (peer && peer.id && connectId !== peer.id) {
-                console.log('Attempting to connect to:', connectId);
-                connectToPeer(connectId);
-                return true;
-            }
-            return false;
-        };
-
-        // Try to connect immediately if peer is ready
-        if (!attemptConnection()) {
-            console.log('Peer not ready, will retry in 1 second');
-            // If peer isn't ready, try again after a delay
-            let retryCount = 0;
-            const maxRetries = 5;
-            const retryInterval = setInterval(() => {
-                retryCount++;
-                console.log(`Retry attempt ${retryCount}`);
-                
-                if (attemptConnection() || retryCount >= maxRetries) {
-                    clearInterval(retryInterval);
-                    if (retryCount >= maxRetries) {
-                        console.log('Max retries reached, connection failed');
-                        const notification = document.getElementById('notification');
-                        notification.textContent = 'Failed to establish connection. Please try manually connecting.';
-                        notification.className = 'notification show error';
-                        setTimeout(() => notification.classList.remove('show'), 3000);
-                    }
-                }
-            }, 1000);
-        }
+        console.log('Found connect ID in URL:', connectId);
+        document.getElementById('peerInput').value = connectId;
+        setTimeout(() => {
+            document.getElementById('connectButton').click();
+        }, 1000);
     }
 }
 

@@ -8,12 +8,11 @@ function setupUI() {
     fetch('/network-info')
         .then(response => response.json())
         .then(info => {
-            // Update network URL display - only show main URL
             const networkUrl = 'https://webdrop-qu29.onrender.com';
             document.getElementById('networkUrl').textContent = networkUrl;
             
-            // Setup network URL copy button
-            if (copyNetworkUrl) {
+             // Setup network URL copy button
+             if (copyNetworkUrl) {
                 copyNetworkUrl.addEventListener('click', async () => {
                     const networkUrlElement = document.getElementById('networkUrl');
                     const currentUrl = networkUrlElement ? networkUrlElement.textContent : '';
@@ -155,12 +154,7 @@ function createQRCode(baseUrl) {
     }
 
     // Create connection URL with peer ID
-    const connectionData = {
-        url: baseUrl,
-        peerId: peerId,
-        type: 'webdrop-connect'
-    };
-    const connectionUrl = baseUrl + '#connect=' + encodeURIComponent(peerId);
+    const connectionUrl = 'https://webdrop-qu29.onrender.com?connect=' + encodeURIComponent(peerId);
 
     const qrContainer = document.getElementById('qrRoot');
     qrContainer.innerHTML = '';
@@ -254,7 +248,7 @@ function showNotification(message, type = 'info') {
 // Handle connection parameters from URL
 function handleConnectionParams() {
     const hash = window.location.hash;
-    if (hash && hash.startsWith('#connect=')) {
+    if (hash && hash.startsWith('?connect=')) {
         const peerId = decodeURIComponent(hash.substring(9));
         if (peerId) {
             // Clear the hash to avoid reconnection on refresh
