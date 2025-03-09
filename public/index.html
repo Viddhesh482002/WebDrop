@@ -18,9 +18,20 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2217829108792212"
      crossorigin="anonymous"></script>
-
      <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2217829108792212"
      crossorigin="anonymous"></script>
+    <style>
+        html {
+            scroll-behavior: smooth;
+        }
+        section {
+            padding: 60px 0;
+            margin-bottom: 40px;
+        }
+        .nav-link.active {
+            color: #4a9eff;
+        }
+    </style>
 </head>
 <body>
     <div class="stars"></div>
@@ -40,9 +51,9 @@
                 </div>
             </div>
             <nav class="main-nav">
-                <a href="/" class="nav-link active"><i class="fas fa-home"></i> Home</a>
-                <a href="/pages/about.html" class="nav-link"><i class="fas fa-info-circle"></i> About</a>
-                <a href="/pages/how-it-works.html" class="nav-link"><i class="fas fa-question-circle"></i> How It Works</a>
+                <a href="#home" class="nav-link active"><i class="fas fa-home"></i> Home</a>
+                <a href="#about" class="nav-link"><i class="fas fa-info-circle"></i> About</a>
+                <a href="#how-it-works" class="nav-link"><i class="fas fa-question-circle"></i> How It Works</a>
             </nav>
             <div class="connection-status">
                 <div class="pulse-ring"></div>
@@ -52,74 +63,197 @@
         </header>
 
         <main>
-            <div class="floating-card network-info">
-                <div class="card-glow"></div>
-                <i class="fas fa-network-wired card-icon"></i>
-                <h2>Network Connection</h2>
-                <p>Access WebDrop at:</p>
-                <div class="network-link">
-                    <span id="networkUrl"></span>
-                    <button id="copyNetworkUrl" class="icon-button" title="Copy link">
-                        <i class="fas fa-copy"></i>
-                    </button>
-                </div>
-            </div>
-
-            <div class="floating-card drop-zone" id="dropZone">
-                <div class="card-glow"></div>
-                <div class="upload-area">
-                    <i class="fas fa-cloud-upload-alt bounce"></i>
-                    <h2>Beam Your Files</h2>
-                    <p>Drag & drop files or click to select</p>
-                    <input type="file" id="fileInput" hidden multiple>
-                </div>
-                <div class="transfer-progress">
-                    <div class="transfer-status">
-                        <i class="fas fa-satellite-dish rotating"></i>
-                        <p>Beaming files...</p>
-                    </div>
-                    <div class="progress-bar">
-                        <div class="progress-bar-fill"></div>
-                        <div class="progress-particles"></div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="connection-panel">
-                <div class="floating-card qr-section">
+            <section id="home">
+                <div class="floating-card network-info">
                     <div class="card-glow"></div>
-                    <h2>Quick Connect</h2>
-                    <div id="qrRoot" class="qr-container"></div>
-                    <p>Scan QR code to connect instantly</p>
-                </div>
-
-                <div class="floating-card peer-section">
-                    <div class="card-glow"></div>
-                    <i class="fas fa-project-diagram card-icon"></i>
-                    <h2>Peer Connection</h2>
-                    <div class="id-container">
-                        <div class="peer-id">
-                            <label>Your ID</label>
-                            <div class="id-display">
-                                <span id="peerId"></span>
-                                <button id="copyId" class="icon-button" title="Copy ID">
-                                    <i class="fas fa-copy"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="connect-container">
-                        <div class="input-group">
-                            <i class="fas fa-link"></i>
-                            <input type="text" id="peerInput" placeholder="Enter peer ID to connect">
-                        </div>
-                        <button id="connectButton" class="glow-button">
-                            <i class="fas fa-plug"></i>
-                            Connect
+                    <i class="fas fa-network-wired card-icon"></i>
+                    <h2>Network Connection</h2>
+                    <p>Access WebDrop at:</p>
+                    <div class="network-link">
+                        <span id="networkUrl"></span>
+                        <button id="copyNetworkUrl" class="icon-button" title="Copy link">
+                            <i class="fas fa-copy"></i>
                         </button>
                     </div>
                 </div>
-            </div>
+
+                <div class="floating-card drop-zone" id="dropZone">
+                    <div class="card-glow"></div>
+                    <div class="upload-area">
+                        <i class="fas fa-cloud-upload-alt bounce"></i>
+                        <h2>Beam Your Files</h2>
+                        <p>Drag & drop files or click to select</p>
+                        <input type="file" id="fileInput" hidden multiple>
+                    </div>
+                    <div class="transfer-progress">
+                        <div class="transfer-status">
+                            <i class="fas fa-satellite-dish rotating"></i>
+                            <p>Beaming files...</p>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-bar-fill"></div>
+                            <div class="progress-particles"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="connection-panel">
+                    <div class="floating-card qr-section">
+                        <div class="card-glow"></div>
+                        <h2>Quick Connect</h2>
+                        <div id="qrRoot" class="qr-container"></div>
+                        <p>Scan QR code to connect instantly</p>
+                    </div>
+
+                    <div class="floating-card peer-section">
+                        <div class="card-glow"></div>
+                        <i class="fas fa-project-diagram card-icon"></i>
+                        <h2>Peer Connection</h2>
+                        <div class="id-container">
+                            <div class="peer-id">
+                                <label>Your ID</label>
+                                <div class="id-display">
+                                    <span id="peerId"></span>
+                                    <button id="copyId" class="icon-button" title="Copy ID">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="connect-container">
+                            <div class="input-group">
+                                <i class="fas fa-link"></i>
+                                <input type="text" id="peerInput" placeholder="Enter peer ID to connect">
+                            </div>
+                            <button id="connectButton" class="glow-button">
+                                <i class="fas fa-plug"></i>
+                                Connect
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="about" class="page-content">
+                <div class="floating-card about-card">
+                    <div class="card-glow"></div>
+                    <h2><i class="fas fa-rocket"></i> About WebDrop</h2>
+                    <p>WebDrop is a cutting-edge file sharing platform that prioritizes security, speed, and simplicity. Our service enables direct peer-to-peer file transfers without storing any data on servers, ensuring your files remain private and secure.</p>
+                    
+                    <h3><i class="fas fa-shield-alt"></i> Security First</h3>
+                    <p>We utilize end-to-end encryption and direct peer-to-peer connections, meaning your files never touch our servers. This approach ensures maximum privacy and security for all file transfers.</p>
+
+                    <h3><i class="fas fa-bolt"></i> Lightning Fast</h3>
+                    <p>By establishing direct connections between users, WebDrop enables rapid file transfers without the bottleneck of server uploads and downloads.</p>
+
+                    <h3><i class="fas fa-feather"></i> Simple to Use</h3>
+                    <p>No registration required. Simply open WebDrop, share your connection details, and start transferring files instantly. Our intuitive interface makes file sharing a breeze.</p>
+
+                    <div class="feature-grid">
+                        <div class="feature-item">
+                            <i class="fas fa-lock"></i>
+                            <h4>End-to-End Encryption</h4>
+                            <p>Your files are encrypted during transfer</p>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-server-slash"></i>
+                            <h4>No Server Storage</h4>
+                            <p>Files transfer directly between peers</p>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-user-shield"></i>
+                            <h4>Privacy Focused</h4>
+                            <p>No personal data collection</p>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-globe"></i>
+                            <h4>Cross-Platform</h4>
+                            <p>Works on all modern browsers</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="how-it-works" class="page-content">
+                <div class="floating-card guide-card">
+                    <div class="card-glow"></div>
+                    <h2><i class="fas fa-book"></i> How to Use WebDrop</h2>
+                    
+                    <div class="step-guide">
+                        <div class="step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <h3>Open WebDrop</h3>
+                                <p>Visit WebDrop in your browser. No installation or signup required.</p>
+                                <div class="step-image">
+                                    <i class="fas fa-globe"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <h3>Connect with Peer</h3>
+                                <p>Share your connection ID or scan the QR code with another device.</p>
+                                <div class="step-image">
+                                    <i class="fas fa-qrcode"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="step">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <h3>Select Files</h3>
+                                <p>Drag and drop files into the upload area or click to select files.</p>
+                                <div class="step-image">
+                                    <i class="fas fa-file-upload"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="step">
+                            <div class="step-number">4</div>
+                            <div class="step-content">
+                                <h3>Transfer Files</h3>
+                                <p>Files transfer directly to the connected peer with end-to-end encryption.</p>
+                                <div class="step-image">
+                                    <i class="fas fa-exchange-alt"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tips-section">
+                        <h3><i class="fas fa-lightbulb"></i> Pro Tips</h3>
+                        <ul>
+                            <li>Both devices must be connected to the internet</li>
+                            <li>Keep the browser tab open during transfer</li>
+                            <li>Use modern browsers for best performance</li>
+                            <li>Large files may take longer to transfer</li>
+                        </ul>
+                    </div>
+
+                    <div class="troubleshooting">
+                        <h3><i class="fas fa-wrench"></i> Troubleshooting</h3>
+                        <div class="accordion">
+                            <details>
+                                <summary>Connection Issues</summary>
+                                <p>Ensure both devices are online and using compatible browsers. Try refreshing the page or generating a new connection ID.</p>
+                            </details>
+                            <details>
+                                <summary>Transfer Failed</summary>
+                                <p>Check your internet connection and try reconnecting. Make sure the browser tab remains open during transfer.</p>
+                            </details>
+                            <details>
+                                <summary>QR Code Not Working</summary>
+                                <p>Ensure your camera has permission to scan QR codes and the code is clearly visible. Try manually entering the connection ID instead.</p>
+                            </details>
+                        </div>
+                    </div>
+                </div>
+            </section>
         </main>
 
         <footer>
@@ -136,5 +270,43 @@
     <script src="/js/connection.js"></script>
     <script src="/js/filetransfer.js"></script>
     <script src="/js/ui.js"></script>
+    <script>
+        // Add smooth scrolling for navigation links
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const targetId = link.getAttribute('href');
+                document.querySelector(targetId).scrollIntoView({ behavior: 'smooth' });
+                
+                // Update active link
+                document.querySelectorAll('.nav-link').forEach(navLink => {
+                    navLink.classList.remove('active');
+                });
+                link.classList.add('active');
+            });
+        });
+
+        // Update active link on scroll
+        window.addEventListener('scroll', () => {
+            const sections = document.querySelectorAll('section');
+            const navLinks = document.querySelectorAll('.nav-link');
+            
+            let currentSection = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                const sectionHeight = section.clientHeight;
+                if (window.scrollY >= sectionTop - 60) {
+                    currentSection = section.getAttribute('id');
+                }
+            });
+
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href').slice(1) === currentSection) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
 </body>
 </html>
